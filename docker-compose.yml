@@ -1,0 +1,60 @@
+version: '3.3'
+services:
+  netdata:
+    image: netdata/netdata
+    container_name: netdata
+    pid: host
+    network_mode: host
+    restart: always
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - /run/dbus:/run/dbus:ro
+      - netdataconfig:/etc/netdata
+      - netdatalib:/var/lib/netdata
+      - netdatacache:/var/cache/netdata
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/log:/host/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+  prometheus:
+    container_name: prometheus
+    restart: always
+    ports:
+      - 9090:9090
+    volumes:
+      - /home/checho/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    image: prom/prometheus
+  portainer-ce:
+    ports:
+      - 8000:8000
+      - 9443:9443
+    container_name: portainer
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    image: portainer/portainer-ce:latest
+  grafana-enterprise:
+    restart: always
+    ports:
+      - 3000:3000
+    container_name: grafana
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    image: grafana/grafana-enterprise
+volumes:
+  netdataconfig:
+  netdatalib:
+  netdatacache:
+  portainer_data:
+    external: true
+  grafana-storage:
+    external: true
